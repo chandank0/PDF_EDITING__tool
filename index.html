@@ -135,7 +135,7 @@
 
             <div>
                 <label for="fileInput">Upload file:</label><br>
-                <input type="file" id="fileInput" name="file">
+                <input type="file" id="fileInput" name="file" accept=".pdf, .jpg, .jpeg, .png">
             </div>
 
             <div id="passwordSection" class="password-input">
@@ -202,42 +202,43 @@
             reader.readAsArrayBuffer(file);
         });
 
+        // Placeholder for PDF to Image
         function convertPdfToImage(pdfData) {
             alert('PDF to Image is not implemented in this demo.');
         }
 
+        // Image to PDF conversion using html2pdf.js
         function convertImageToPdf(imageFile) {
-            const imageURL = URL.createObjectURL(imageFile);
-            const pdf = new jsPDF();
+            const imgElement = document.createElement('img');
+            const imageUrl = URL.createObjectURL(imageFile);
+            imgElement.src = imageUrl;
 
-            const img = new Image();
-            img.src = imageURL;
-            img.onload = function () {
-                pdf.addImage(img, 'JPEG', 0, 0, 210, 297); // A4 size
-                pdf.save("converted.pdf");
+            imgElement.onload = function () {
+                const pdf = new jsPDF();
+                pdf.addImage(imgElement, 'JPEG', 0, 0, 210, 297);
+                pdf.save('converted.pdf');
             };
         }
 
+        // Compress PDF using pdf-lib
         async function compressPdf(pdfData) {
             const pdfDoc = await PDFLib.PDFDocument.load(pdfData);
             const compressedPdfBytes = await pdfDoc.save();
-
             download(compressedPdfBytes, 'compressed.pdf', 'application/pdf');
         }
 
+        // Protect PDF with password using pdf-lib
         async function protectPdf(pdfData, password) {
             const pdfDoc = await PDFLib.PDFDocument.load(pdfData);
-
-            // Encrypt the PDF with the provided password
             pdfDoc.encrypt({
                 ownerPassword: password,
                 permissions: { printing: 'highResolution' }
             });
-
             const protectedPdfBytes = await pdfDoc.save();
             download(protectedPdfBytes, 'protected.pdf', 'application/pdf');
         }
 
+        // Helper function to download files
         function download(blob, filename, mimeType) {
             const link = document.createElement('a');
             link.href = URL.createObjectURL(new Blob([blob], { type: mimeType }));
