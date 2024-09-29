@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chandan Creations - PDF Editing Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #2C3E50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        select, input[type="file"], input[type="password"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        select {
+            appearance: none;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #2980B9;
+            color: white;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3498DB;
+        }
+
+        .password-input {
+            display: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #7F8C8D;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 15px;
+            }
+
+            header {
+                font-size: 24px;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        Chandan Creations
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1>PDF Editing Tool</h1>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div>
+                <label>Select an action:</label><br>
+                <select id="actionSelect">
+                    <option value="pdfToImage">PDF to Image</option>
+                    <option value="imageToPdf">Image to PDF</option>
+                    <option value="compressPdf">Compress PDF</option>
+                    <option value="mergePdf">Merge PDF</option>
+                    <option value="pdfProtect">Protect PDF (Add Password)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="fileInput">Upload file:</label><br>
+                <input type="file" id="fileInput" name="file">
+            </div>
+
+            <div id="passwordSection" class="password-input">
+                <label for="passwordInput">Enter Password:</label><br>
+                <input type="password" id="passwordInput" name="password">
+            </div>
+
+            <button type="button" id="submitBtn">Submit</button>
+        </form>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        © 2024 Chandan Creations. All rights reserved.
+    </div>
+
+    <!-- JavaScript Section -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib"></script>
+    <script src="https://unpkg.com/html2pdf.js"></script>
+
+    <script>
+        const actionSelect = document.getElementById('actionSelect');
+        const passwordSection = document.getElementById('passwordSection');
+        const submitBtn = document.getElementById('submitBtn');
+        const fileInput = document.getElementById('fileInput');
+
+        actionSelect.addEventListener('change', function () {
+            if (actionSelect.value === 'pdfProtect') {
+                passwordSection.style.display = 'block';
+            } else {
+                passwordSection.style.display = 'none';
+            }
+        });
+
+        submitBtn.addEventListener('click', async function () {
+            const file = fileInput.files[0];
+            const action = actionSelect.value;
+
+            if (!file) {
+                alert("Please upload a file.");
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = async function (event) {
+                const fileData = event.target.result;
+
+                if (action === 'pdfToImage') {
+                    convertPdfToImage(fileData);
+                } else if (action === 'imageToPdf') {
+                    convertImageToPdf(file);
+                } else if (action === 'compressPdf') {
+                    compressPdf(fileData);
+                } else if (action === 'pdfProtect') {
+                    const password = document.getElementById('passwordInput').value;
+                    protectPdf(fileData, password);
+                } else if (action === 'mergePdf') {
+                    alert('Merge PDF functionality is not implemented in this demo.');
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+
+        function convertPdfToImage(pdfData) {
+            alert('PDF to Image is not implemented in this demo.');
+        }
+
+        function convertImageToPdf(imageFile) {
+            const imageURL = URL.createObjectURL(imageFile);
+            const pdf = new jsPDF();
+
+            const img = new Image();
+            img.src = imageURL;
+            img.onload = function () {
+                pdf.addImage(img, 'JPEG', 0, 0, 210, 297); // A4 size
+                pdf.save("converted.pdf");
+            };
+        }
+
+        async function compressPdf(pdfData) {
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfData);
+            const compressedPdfBytes = await pdfDoc.save();
+
+            download(compressedPdfBytes, 'compressed.pdf', 'application/pdf');
+        }
+
+        async function protectPdf(pdfData, password) {
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfData);
+
+            // Encrypt the PDF with the provided password
+            pdfDoc.encrypt({
+                ownerPassword: password,
+                permissions: { printing: 'highResolution' }
+            });
+
+            const protectedPdfBytes = await pdfDoc.save();
+            download(protectedPdfBytes, 'protected.pdf', 'application/pdf');
+        }
+
+        function download(blob, filename, mimeType) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([blob], { type: mimeType }));
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+
+</body>
+</html>
